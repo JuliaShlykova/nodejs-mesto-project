@@ -1,14 +1,14 @@
 {
-  "name": "nodejs-mesto-backend",
+  "name": "nodejs-mesto-project",
   "version": "1.0.0",
   "description": "",
-  "homepage": "https://github.com/JuliaShlykova/nodejs-mesto-backend#readme",
+  "homepage": "https://github.com/JuliaShlykova/nodejs-mesto-project#readme",
   "bugs": {
-    "url": "https://github.com/JuliaShlykova/nodejs-mesto-backend/issues"
+    "url": "https://github.com/JuliaShlykova/nodejs-mesto-project/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/JuliaShlykova/nodejs-mesto-backend.git"
+    "url": "git+https://github.com/JuliaShlykova/nodejs-mesto-project.git"
   },
   "license": "ISC",
   "author": "",
