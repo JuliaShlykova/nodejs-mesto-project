@@ -1,0 +1,61 @@
+import 'dotenv/config';
+import express, { NextFunction, Request, Response } from 'express';
+import mongoose from 'mongoose';
+import userRouter from './routes/users';
+import cardRouter from './routes/cards';
+import logger from './utils/logger';
+import HTTP_STATUS from './constants/statusCode';
+
+const PORT = Number(process.env.PORT) || 3000;
+const DB_URL = process.env.DB_URL || 'mongodb://localhost:27017/mestodb';
+
+const app = express();
+
+app.use(express.json());
+
+app.use((req: Request, res: Response, next: NextFunction) => {
+  req.user = {
+    _id: '6a33a0c59e82a14e87014bab',
+  };
+
+  next();
+});
+
+app.use('/users', userRouter);
+app.use('/cards', cardRouter);
+
+// handling errors
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+  logger.error(`${req.method} ${req.originalUrl} - ${err.name}: ${err.message}`);
+
+  if (err.name === 'AuthError') {
+    return res.status(HTTP_STATUS.UNAUTHORIZED).send({ message: err.message || 'Необходима авторизация' });
+  }
+  if (err.name === 'NotFoundError') {
+    return res.status(HTTP_STATUS.NOT_FOUND).send({ message: err.message || 'Ресурс не найден' });
+  }
+
+  // Handle specific Mongoose database formatting errors
+  if (err.name === 'CastError') {
+    return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: 'Передан некорректный id' });
+  }
+  if (err.name === 'ValidationError') {
+    return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+  }
+
+  // Fallback for unexpected global server crashes
+  return res.status(HTTP_STATUS.INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' });
+});
+
+mongoose
+  .connect(DB_URL)
+  .then(() => {
+    logger.info('Successfully connected to MongoDB (mestodb)');
+  })
+  .catch((e) => {
+    logger.error('Database connection error:', e);
+  });
+
+app.listen(PORT, () => {
+  logger.info(`App is listening on port ${PORT}`);
+});
