@@ -18,6 +18,17 @@ const cardSchema = new Schema<ICard>({
   link: {
     type: String,
     required: true,
+    validate: {
+      validator(v: string) {
+        try {
+          const url = new URL(v);
+          return url.protocol === 'http:' || url.protocol === 'https:';
+        } catch {
+          return false;
+        }
+      },
+      message: 'Передан некорректный URL-адрес для карточки',
+    },
   },
   owner: {
     type: mongoose.Types.ObjectId,

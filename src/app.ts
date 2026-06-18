@@ -13,7 +13,7 @@ const app = express();
 
 app.use(express.json());
 
-app.use((req: Request, res: Response, next: NextFunction) => {
+app.use((req: Request, _res: Response, next: NextFunction) => {
   req.user = {
     _id: '6a33a0c59e82a14e87014bab',
   };
@@ -23,6 +23,12 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 app.use('/users', userRouter);
 app.use('/cards', cardRouter);
+
+app.use((req: Request, _res: Response, next: NextFunction) => {
+  const error = new Error(`Запрашиваемый ресурс по адресу ${req.originalUrl} не найден`);
+  error.name = 'NotFoundError';
+  return next(error);
+});
 
 // handling errors
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {

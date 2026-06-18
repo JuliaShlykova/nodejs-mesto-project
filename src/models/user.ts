@@ -22,6 +22,17 @@ const userSchema = new Schema<IUser>({
   avatar: {
     type: String,
     required: true,
+    validate: {
+      validator(v: string) {
+        try {
+          const url = new URL(v);
+          return url.protocol === 'http:' || url.protocol === 'https:';
+        } catch {
+          return false;
+        }
+      },
+      message: 'Передан некорректный URL-адрес для аватара',
+    },
   },
 }, {
   versionKey: false,

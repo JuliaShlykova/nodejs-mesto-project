@@ -30,7 +30,7 @@ export const deleteCard = async (req: Request, res: Response, next: NextFunction
     return next(error);
   }
   await card.deleteOne();
-  return res.sendStatus(HTTP_STATUS.NO_CONTENT);
+  return res.status(HTTP_STATUS.OK).send({ message: 'Карточка удалена' });
 };
 
 export const likeCard = async (req: Request, res: Response, next: NextFunction) => {
