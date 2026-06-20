@@ -2,9 +2,9 @@ import mongoose, { Schema } from 'mongoose';
 import validator from 'validator';
 
 export interface IUser {
-  name: string;
-  about: string;
-  avatar: string;
+  name?: string;
+  about?: string;
+  avatar?: string;
   email: string;
   password: string;
 }
@@ -12,19 +12,19 @@ export interface IUser {
 const userSchema = new Schema<IUser>({
   name: {
     type: String,
-    required: true,
     minLength: 2,
     maxLength: 30,
+    default: 'Жак-Ив Кусто',
   },
   about: {
     type: String,
-    required: true,
     minLength: 2,
     maxLength: 200,
+    default: 'Исследователь',
   },
   avatar: {
     type: String,
-    required: true,
+    default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator(v: string) {
         return validator.isURL(v);

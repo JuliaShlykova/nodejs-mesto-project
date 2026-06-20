@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import bcrypt from 'bcryptjs';
 import User from '../models/user';
 import HTTP_STATUS from '../constants/statusCode';
 import { BadRequestError, NotFoundError } from '../HTTPerrors';
@@ -18,12 +19,22 @@ export const getUserById = async (req: Request, res: Response, _next: NextFuncti
 };
 
 export const createUser = async (req: Request, res: Response, _next: NextFunction) => {
-  const { name, about, avatar } = req.body;
+  const {
+    name, about, avatar, email, password,
+  } = req.body;
 
-  if (!name || !about || !avatar) {
-    throw new BadRequestError(`Check fields: name: ${name}, about: ${about}, avatar: ${avatar}`);
+  if (!email || !password) {
+    throw new BadRequestError('Поля email и password обязательны для заполнения');
   }
-  const newUser = await User.create({ name, about, avatar });
+  const hashedPassword = await bcrypt.hash(password, 10);
+  const userData = {
+    email,
+    password: hashedPassword,
+    name: name || undefined,
+    about: about || undefined,
+    avatar: avatar || undefined,
+  };
+  const newUser = await User.create(userData);
   return res.status(HTTP_STATUS.CREATED).send(newUser);
 };
 
