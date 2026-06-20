@@ -5,6 +5,7 @@ import userRouter from './routes/users';
 import cardRouter from './routes/cards';
 import logger from './utils/logger';
 import HTTP_STATUS from './constants/statusCode';
+import { ApiError } from './HTTPerrors';
 
 const PORT = Number(process.env.PORT) || 3000;
 const DB_URL = process.env.DB_URL || 'mongodb://localhost:27017/mestodb';
@@ -34,14 +35,18 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   logger.error(`${req.method} ${req.originalUrl} - ${err.name}: ${err.message}`);
 
-  if (err.name === 'AuthError') {
-    return res.status(HTTP_STATUS.UNAUTHORIZED).send({ message: err.message || 'Необходима авторизация' });
-  }
-  if (err.name === 'NotFoundError') {
-    return res.status(HTTP_STATUS.NOT_FOUND).send({ message: err.message || 'Ресурс не найден' });
+  // Catch ALL of your custom API errors instantly using instanceof
+  if (err instanceof ApiError) {
+    return res.status(err.statusCode).send({ message: err.message });
   }
 
   // Handle specific Mongoose database formatting errors
+  if ('code' in err && err.code === 11000) {
+    return res.status(HTTP_STATUS.CONFLICT).send({
+      message: 'Пользователь с таким email уже зарегистрирован',
+    });
+  }
+
   if (err.name === 'CastError') {
     return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: 'Передан некорректный id' });
   }

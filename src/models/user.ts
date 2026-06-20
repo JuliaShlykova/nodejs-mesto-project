@@ -1,9 +1,12 @@
 import mongoose, { Schema } from 'mongoose';
+import validator from 'validator';
 
 export interface IUser {
   name: string;
   about: string;
   avatar: string;
+  email: string;
+  password: string;
 }
 
 const userSchema = new Schema<IUser>({
@@ -24,15 +27,26 @@ const userSchema = new Schema<IUser>({
     required: true,
     validate: {
       validator(v: string) {
-        try {
-          const url = new URL(v);
-          return url.protocol === 'http:' || url.protocol === 'https:';
-        } catch {
-          return false;
-        }
+        return validator.isURL(v);
       },
       message: 'Передан некорректный URL-адрес для аватара',
     },
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true,
+    lowercase: true,
+    validate: {
+      validator(v: string) {
+        return validator.isEmail(v);
+      },
+      message: 'Передан некорректный адрес электронной почты',
+    },
+  },
+  password: {
+    type: String,
+    required: true,
   },
 }, {
   versionKey: false,

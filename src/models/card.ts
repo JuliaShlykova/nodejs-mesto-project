@@ -1,4 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
+import validator from 'validator';
 
 export interface ICard {
   name: string;
@@ -20,12 +21,7 @@ const cardSchema = new Schema<ICard>({
     required: true,
     validate: {
       validator(v: string) {
-        try {
-          const url = new URL(v);
-          return url.protocol === 'http:' || url.protocol === 'https:';
-        } catch {
-          return false;
-        }
+        return validator.isURL(v);
       },
       message: 'Передан некорректный URL-адрес для карточки',
     },
