@@ -3,7 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/user';
 import HTTP_STATUS from '../constants/statusCode';
-import { BadRequestError, NotFoundError, UnauthorizedError } from '../HTTPerrors';
+import { NotFoundError, UnauthorizedError } from '../HTTPerrors';
 
 export const getUsers = async (req: Request, res: Response, _next: NextFunction) => {
   const users = await User.find({});
@@ -24,9 +24,6 @@ export const createUser = async (req: Request, res: Response, _next: NextFunctio
     name, about, avatar, email, password,
   } = req.body;
 
-  if (!email || !password) {
-    throw new BadRequestError('Поля email и password обязательны для заполнения');
-  }
   const hashedPassword = await bcrypt.hash(password, 10);
   const userData = {
     email,
@@ -73,9 +70,6 @@ export const updateAvatar = async (req: Request, res: Response, _next: NextFunct
 
 export const login = async (req: Request, res: Response) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    throw new BadRequestError('Поля email и password обязательны для заполнения');
-  }
 
   const user = await User.findOne({ email }).select('+password');
 

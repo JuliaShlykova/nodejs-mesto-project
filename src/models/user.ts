@@ -1,5 +1,6 @@
 import mongoose, { Schema } from 'mongoose';
 import validator from 'validator';
+import URL_REGEX from '../constants/regex';
 
 export interface IUser {
   name?: string;
@@ -27,7 +28,7 @@ const userSchema = new Schema<IUser>({
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
     validate: {
       validator(v: string) {
-        return validator.isURL(v);
+        return URL_REGEX.test(v);
       },
       message: 'Передан некорректный URL-адрес для аватара',
     },

@@ -3,6 +3,9 @@ import express, { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
 
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import { isCelebrateError } from 'celebrate';
 import userRouter from './routes/users';
 import cardRouter from './routes/cards';
 import logger from './utils/logger';
@@ -15,6 +18,17 @@ const PORT = Number(process.env.PORT) || 3000;
 const DB_URL = process.env.DB_URL || 'mongodb://localhost:27017/mestodb';
 
 const app = express();
+
+// protection against XSS
+app.use(helmet());
+
+// protection against bruteforce and ddos
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes window
+  max: 100, // Limit each IP to 100 requests per window
+  message: { message: 'Слишком много запросов с этого IP, пожалуйста, попробуйте позже.' },
+});
+app.use(limiter);
 
 app.use(cookieParser());
 app.use(express.json());
@@ -47,6 +61,7 @@ app.use(authMiddleware);
 app.use('/users', userRouter);
 app.use('/cards', cardRouter);
 
+// all other paths
 app.use((req: Request, _res: Response, _next: NextFunction) => {
   throw new NotFoundError(`Запрашиваемый ресурс по адресу ${req.originalUrl} не найден`);
 });
@@ -61,12 +76,20 @@ app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
     stack: err.stack,
   });
 
-  // Catch ALL of custom API errors instantly using instanceof
+  // Catch custom API errors
   if (err instanceof ApiError) {
     return res.status(err.statusCode).send({ message: err.message });
   }
 
-  // Handle specific Mongoose database formatting errors
+  // Catch Celebrate Validation Errors
+  if (isCelebrateError(err)) {
+    const errorBody = err.details.get('body') || err.details.get('params') || err.details.get('headers');
+    const message = errorBody?.details.map((d) => d.message).join('. ') || 'Ошибка валидации данных';
+
+    return res.status(HTTP_STATUS.BAD_REQUEST).send({ message });
+  }
+
+  // Catch specific Mongoose database formatting errors
   if ('code' in err && err.code === 11000) {
     return res.status(HTTP_STATUS.CONFLICT).send({
       message: 'Пользователь с таким email уже зарегистрирован',

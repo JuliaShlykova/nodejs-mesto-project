@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose';
-import validator from 'validator';
+import URL_REGEX from '../constants/regex';
 
 export interface ICard {
   name: string;
@@ -21,7 +21,7 @@ const cardSchema = new Schema<ICard>({
     required: true,
     validate: {
       validator(v: string) {
-        return validator.isURL(v);
+        return URL_REGEX.test(v);
       },
       message: 'Передан некорректный URL-адрес для карточки',
     },

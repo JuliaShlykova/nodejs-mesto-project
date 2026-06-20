@@ -11,10 +11,6 @@ export const getCards = async (req: Request, res: Response, _next: NextFunction)
 export const createCard = async (req: Request, res: Response, _next: NextFunction) => {
   const { name, link } = req.body;
 
-  if (!name || !link) {
-    throw new BadRequestError(`Check fields: name: ${name}, link: ${link}`);
-  }
-
   const newCard = await Card.create({ name, link, owner: req.user._id });
   return res.status(HTTP_STATUS.CREATED).send(newCard);
 };

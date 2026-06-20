@@ -3,12 +3,13 @@ import {
   dislikeCard,
   createCard, deleteCard, getCards, likeCard,
 } from '../controllers/cards';
+import { validateCardId, validateCreateCard } from '../middleware/validation';
 
 const router = Router();
 
 router.get('/', getCards);
-router.post('/', createCard);
-router.delete('/:cardId', deleteCard);
+router.post('/', validateCreateCard, createCard);
+router.delete('/:cardId', validateCardId, deleteCard);
 router.put('/:cardId/likes', likeCard);
 router.delete('/:cardId/likes', dislikeCard);
 
