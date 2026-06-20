@@ -35,7 +35,7 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   logger.error(`${req.method} ${req.originalUrl} - ${err.name}: ${err.message}`);
 
-  // Catch ALL of your custom API errors instantly using instanceof
+  // Catch ALL of custom API errors instantly using instanceof
   if (err instanceof ApiError) {
     return res.status(err.statusCode).send({ message: err.message });
   }

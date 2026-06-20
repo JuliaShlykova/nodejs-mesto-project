@@ -24,7 +24,7 @@ export const deleteCard = async (req: Request, res: Response, _next: NextFunctio
 
   const card = await Card.findById(cardId);
   if (!card) {
-    throw new NotFoundError(`No card with id: ${cardId}`);
+    throw new NotFoundError(`Нет карточки с id: ${cardId}`);
   }
   await card.deleteOne();
   return res.status(HTTP_STATUS.OK).send({ message: 'Карточка удалена' });
@@ -37,7 +37,7 @@ export const likeCard = async (req: Request, res: Response, _next: NextFunction)
     $addToSet: { likes: req.user._id },
   }, { new: true });
   if (!updatedCard) {
-    throw new NotFoundError(`No card with id: ${cardId}`);
+    throw new NotFoundError(`Нет карточки с id: ${cardId}`);
   }
   return res.status(HTTP_STATUS.OK).send(updatedCard);
 };
@@ -49,7 +49,7 @@ export const dislikeCard = async (req: Request, res: Response, _next: NextFuncti
     $pull: { likes: req.user._id },
   }, { new: true });
   if (!updatedCard) {
-    throw new NotFoundError(`No card with id: ${cardId}`);
+    throw new NotFoundError(`Нет карточки с id: ${cardId}`);
   }
   return res.status(HTTP_STATUS.OK).send(updatedCard);
 };

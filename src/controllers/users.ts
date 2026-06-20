@@ -12,7 +12,7 @@ export const getUserById = async (req: Request, res: Response, _next: NextFuncti
   const { userId } = req.params;
   const user = await User.findById(userId);
   if (!user) {
-    throw new NotFoundError(`No user with id: ${userId}`);
+    throw new NotFoundError(`Не найден пользователь с id: ${userId}`);
   }
   return res.status(HTTP_STATUS.OK).send(user);
 };
