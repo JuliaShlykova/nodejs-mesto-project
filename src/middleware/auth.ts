@@ -1,13 +1,39 @@
 import { Request, Response, NextFunction } from 'express';
+import jwt from 'jsonwebtoken';
+import { UnauthorizedError } from '../HTTPerrors';
+
+interface TokenPayload {
+  _id: string;
+}
 
 const authMiddleware = (req: Request, _res: Response, next: NextFunction) => {
-  if (!req.user?._id) {
-    const error = new Error('Пользователь не авторизован');
-    error.name = 'AuthError';
-    return next(error);
+  let token: string | undefined;
+
+  // looking for token in headers (according to task) and cookies
+  const { authorization } = req.headers;
+
+  if (authorization && authorization.startsWith('Bearer ')) {
+    token = authorization.replace('Bearer ', '');
+  } else if (req.cookies && req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
 
-  return next();
+  if (!token) {
+    throw new UnauthorizedError();
+  }
+
+  const JWT_SECRET = process.env.JWT_SECRET || 'secret-key';
+  let payload: TokenPayload;
+
+  try {
+    payload = jwt.verify(token, JWT_SECRET) as TokenPayload;
+  } catch (err) {
+    throw new UnauthorizedError();
+  }
+
+  req.user = payload;
+
+  next();
 };
 
 export default authMiddleware;

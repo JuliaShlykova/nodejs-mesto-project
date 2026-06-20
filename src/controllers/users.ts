@@ -1,8 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
+import jwt from 'jsonwebtoken';
 import User from '../models/user';
 import HTTP_STATUS from '../constants/statusCode';
-import { BadRequestError, NotFoundError } from '../HTTPerrors';
+import { BadRequestError, NotFoundError, UnauthorizedError } from '../HTTPerrors';
 
 export const getUsers = async (req: Request, res: Response, _next: NextFunction) => {
   const users = await User.find({});
@@ -68,4 +69,33 @@ export const updateAvatar = async (req: Request, res: Response, _next: NextFunct
   }
 
   return res.status(HTTP_STATUS.OK).send(updatedUser);
+};
+
+export const login = async (req: Request, res: Response) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    throw new BadRequestError('Поля email и password обязательны для заполнения');
+  }
+
+  const user = await User.findOne({ email });
+
+  if (!user) {
+    throw new UnauthorizedError('Неправильные почта или пароль');
+  }
+
+  const isPasswordMatched = await bcrypt.compare(password, user.password);
+
+  if (!isPasswordMatched) {
+    throw new UnauthorizedError('Неправильные почта или пароль');
+  }
+
+  const JWT_SECRET = process.env.JWT_SECRET || 'secret-key';
+
+  const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '1d' });
+
+  return res.status(HTTP_STATUS.OK).cookie('jwt', token, {
+    maxAge: 360_000 * 24 * 1,
+    httpOnly: true,
+    sameSite: 'strict',
+  }).send({ message: 'Авторизация прошла успешно' });
 };

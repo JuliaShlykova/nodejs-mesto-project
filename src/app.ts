@@ -1,17 +1,21 @@
 import 'dotenv/config';
 import express, { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
+import cookieParser from 'cookie-parser';
+
 import userRouter from './routes/users';
 import cardRouter from './routes/cards';
 import logger from './utils/logger';
 import HTTP_STATUS from './constants/statusCode';
 import { ApiError } from './HTTPerrors';
+import { createUser, login } from './controllers/users';
 
 const PORT = Number(process.env.PORT) || 3000;
 const DB_URL = process.env.DB_URL || 'mongodb://localhost:27017/mestodb';
 
 const app = express();
 
+app.use(cookieParser());
 app.use(express.json());
 
 app.use((req: Request, _res: Response, next: NextFunction) => {
@@ -21,6 +25,9 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 
   next();
 });
+
+app.post('/signin', login);
+app.post('/signup', createUser);
 
 app.use('/users', userRouter);
 app.use('/cards', cardRouter);
@@ -50,8 +57,15 @@ app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   if (err.name === 'CastError') {
     return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: 'Передан некорректный id' });
   }
-  if (err.name === 'ValidationError') {
-    return res.status(HTTP_STATUS.BAD_REQUEST).send({ message: 'Переданы некорректные данные' });
+
+  if (err instanceof mongoose.Error.ValidationError) {
+    const messages = Object.values(err.errors)
+      .map((error) => error.message)
+      .join('. ');
+
+    return res.status(HTTP_STATUS.BAD_REQUEST).send({
+      message: messages || 'Переданы некорректные данные',
+    });
   }
 
   // Fallback for unexpected global server crashes
