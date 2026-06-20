@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import Card from '../models/card';
 import HTTP_STATUS from '../constants/statusCode';
-import { BadRequestError, ForbiddenError, NotFoundError } from '../HTTPerrors';
+import { ForbiddenError, NotFoundError } from '../HTTPerrors';
 
 export const getCards = async (req: Request, res: Response, _next: NextFunction) => {
   const cards = await Card.find({});
