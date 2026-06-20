@@ -77,7 +77,7 @@ export const login = async (req: Request, res: Response) => {
     throw new BadRequestError('Поля email и password обязательны для заполнения');
   }
 
-  const user = await User.findOne({ email });
+  const user = await User.findOne({ email }).select('+password');
 
   if (!user) {
     throw new UnauthorizedError('Неправильные почта или пароль');
@@ -94,8 +94,20 @@ export const login = async (req: Request, res: Response) => {
   const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '1d' });
 
   return res.status(HTTP_STATUS.OK).cookie('jwt', token, {
-    maxAge: 360_000 * 24 * 1,
+    maxAge: 3_600_000 * 24 * 1,
     httpOnly: true,
     sameSite: 'strict',
   }).send({ message: 'Авторизация прошла успешно' });
+};
+
+export const getCurrentUser = async (req: Request, res: Response) => {
+  const currentUserId = req.user._id;
+
+  const user = await User.findById(currentUserId);
+
+  if (!user) {
+    throw new NotFoundError('Пользователь не найден');
+  }
+
+  return res.status(HTTP_STATUS.OK).send(user);
 };

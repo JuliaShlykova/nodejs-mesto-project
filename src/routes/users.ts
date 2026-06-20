@@ -1,14 +1,16 @@
 import { Router } from 'express';
 import {
   updateAvatar, getUserById, getUsers, updateProfile,
+  getCurrentUser,
 } from '../controllers/users';
-import authMiddleware from '../middleware/auth';
 
 const router = Router();
 
-router.get('/', authMiddleware, getUsers);
+router.get('/me', getCurrentUser);
 
-router.get('/:userId', authMiddleware, getUserById);
+router.get('/', getUsers);
+
+router.get('/:userId', getUserById);
 
 router.patch('/me', updateProfile);
 

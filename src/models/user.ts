@@ -47,9 +47,18 @@ const userSchema = new Schema<IUser>({
   password: {
     type: String,
     required: true,
+    select: false,
   },
 }, {
   versionKey: false,
+  // forbid sending password when res.send(user)
+  toJSON: {
+    transform: (doc, ret) => {
+      const safeUser = { ...ret } as Partial<typeof ret>;
+      delete safeUser.password;
+      return safeUser;
+    },
+  },
 });
 
 export default mongoose.model<IUser>('User', userSchema);

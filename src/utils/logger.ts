@@ -1,4 +1,3 @@
-// logger.ts
 import { createLogger, format, transports } from 'winston';
 
 const logger = createLogger({
@@ -9,6 +8,7 @@ const logger = createLogger({
   ),
   transports: [
     new transports.File({ filename: 'logs/error.log', level: 'error' }),
+    new transports.File({ filename: 'logs/request.log', level: 'info' }),
     new transports.Console({
       format: format.combine(
         format.colorize(),

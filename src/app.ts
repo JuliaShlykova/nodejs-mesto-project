@@ -7,8 +7,9 @@ import userRouter from './routes/users';
 import cardRouter from './routes/cards';
 import logger from './utils/logger';
 import HTTP_STATUS from './constants/statusCode';
-import { ApiError } from './HTTPerrors';
+import { ApiError, NotFoundError } from './HTTPerrors';
 import { createUser, login } from './controllers/users';
+import authMiddleware from './middleware/auth';
 
 const PORT = Number(process.env.PORT) || 3000;
 const DB_URL = process.env.DB_URL || 'mongodb://localhost:27017/mestodb';
@@ -18,10 +19,23 @@ const app = express();
 app.use(cookieParser());
 app.use(express.json());
 
-app.use((req: Request, _res: Response, next: NextFunction) => {
-  req.user = {
-    _id: '6a33a0c59e82a14e87014bab',
-  };
+// logger for every request
+app.use((req: Request, res: Response, next: NextFunction) => {
+  const startTime = performance.now();
+
+  res.on('finish', () => {
+    const responseTimeMs = (performance.now() - startTime).toFixed(2);
+
+    logger.info({
+      message: 'Request processed',
+      method: req.method,
+      url: req.originalUrl,
+      status: res.statusCode,
+      responseTime: `${responseTimeMs}ms`,
+      ip: req.ip,
+      userAgent: req.get('user-agent') || 'unknown',
+    });
+  });
 
   next();
 });
@@ -29,18 +43,23 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 app.post('/signin', login);
 app.post('/signup', createUser);
 
+app.use(authMiddleware);
 app.use('/users', userRouter);
 app.use('/cards', cardRouter);
 
-app.use((req: Request, _res: Response, next: NextFunction) => {
-  const error = new Error(`Запрашиваемый ресурс по адресу ${req.originalUrl} не найден`);
-  error.name = 'NotFoundError';
-  return next(error);
+app.use((req: Request, _res: Response, _next: NextFunction) => {
+  throw new NotFoundError(`Запрашиваемый ресурс по адресу ${req.originalUrl} не найден`);
 });
 
 // handling errors
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
-  logger.error(`${req.method} ${req.originalUrl} - ${err.name}: ${err.message}`);
+  logger.error({
+    message: err.message,
+    name: err.name,
+    method: req.method,
+    url: req.originalUrl,
+    stack: err.stack,
+  });
 
   // Catch ALL of custom API errors instantly using instanceof
   if (err instanceof ApiError) {
@@ -78,7 +97,10 @@ mongoose
     logger.info('Successfully connected to MongoDB (mestodb)');
   })
   .catch((e) => {
-    logger.error('Database connection error:', e);
+    logger.error({
+      message: 'Database connection error',
+      error: e instanceof Error ? e.message : String(e),
+    });
   });
 
 app.listen(PORT, () => {

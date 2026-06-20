@@ -1,7 +1,7 @@
 import { NextFunction, Request, Response } from 'express';
 import Card from '../models/card';
 import HTTP_STATUS from '../constants/statusCode';
-import { BadRequestError, NotFoundError } from '../HTTPerrors';
+import { BadRequestError, ForbiddenError, NotFoundError } from '../HTTPerrors';
 
 export const getCards = async (req: Request, res: Response, _next: NextFunction) => {
   const cards = await Card.find({});
@@ -26,6 +26,11 @@ export const deleteCard = async (req: Request, res: Response, _next: NextFunctio
   if (!card) {
     throw new NotFoundError(`Нет карточки с id: ${cardId}`);
   }
+
+  if (!card.owner.equals(req.user._id)) {
+    throw new ForbiddenError('Вы не можете удалять карточки других пользователей');
+  }
+
   await card.deleteOne();
   return res.status(HTTP_STATUS.OK).send({ message: 'Карточка удалена' });
 };
