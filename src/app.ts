@@ -12,6 +12,7 @@ import { NotFoundError } from './HTTPerrors';
 import { createUser, login } from './controllers/users';
 import authMiddleware from './middleware/auth';
 import errorHandler from './middleware/errorHandler';
+import { validateCreateUser, validateLogin } from './middleware/validation';
 
 const PORT = Number(process.env.PORT) || 3000;
 const DB_URL = process.env.DB_URL || 'mongodb://localhost:27017/mestodb';
@@ -53,17 +54,16 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   next();
 });
 
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.post('/signin', validateLogin, login);
+app.post('/signup', validateCreateUser, createUser);
 
 app.use(authMiddleware);
 app.use('/users', userRouter);
 app.use('/cards', cardRouter);
 
 // all other paths
-app.use((req: Request, _res: Response, _next: NextFunction) => {
-  throw new NotFoundError(`Запрашиваемый ресурс по адресу ${req.originalUrl} не найден`);
-});
+
+app.use((req: Request, _res: Response, next: NextFunction) => next(new NotFoundError(`Запрашиваемый ресурс по адресу ${req.originalUrl} не найден`)));
 
 // handling errors
 app.use(errorHandler);
