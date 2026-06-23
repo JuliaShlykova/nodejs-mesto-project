@@ -21,10 +21,23 @@ const errorHandler = (err: Error, req: Request, res: Response, _next: NextFuncti
 
   // Catch Celebrate Validation Errors
   if (isCelebrateError(err)) {
-    const errorBody = err.details.get('body') || err.details.get('params') || err.details.get('headers');
-    const message = errorBody?.details.map((d) => d.message).join('. ') || 'Ошибка валидации данных';
+    // Array.from converts the Map iterator into a safe, standard array of entries [[key, value]]
+    const message = Array.from(err.details.values())
+      // flatMap flattens the individual validation error details arrays into one single array
+      .flatMap((joiError) => joiError.details)
+      // Clean up the escaped double quotes from each error message text
+      .map((detail) => detail.message.replace(/"/g, ''))
+      // Join all distinct field errors with a period and space
+      .join('. ');
 
-    return res.status(HTTP_STATUS.BAD_REQUEST).send({ message });
+    return res.status(HTTP_STATUS.BAD_REQUEST).send({
+      message: message || 'Ошибка валидации данных',
+    });
+
+    // const errorBody = err.details.get('body') || err.details.get('params') || err.details.get('headers');
+    // const message = errorBody?.details.map((d) => d.message).join('. ') || 'Ошибка валидации данных';
+
+    // return res.status(HTTP_STATUS.BAD_REQUEST).send({ message });
   }
 
   // Catch specific Mongoose database formatting errors

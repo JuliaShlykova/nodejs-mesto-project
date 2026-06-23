@@ -57,8 +57,8 @@
 
 1. **Клонируйте репозиторий:**
    ```bash
-   git clone https://github.com/JuliaShlykova/nodejs-mesto-backend.git
-   cd nodejs-mesto-backend
+   git clone https://github.com/JuliaShlykova/nodejs-mesto-project.git
+   cd nodejs-mesto-project
    ```
 
 2. **Установите зависимости:**
