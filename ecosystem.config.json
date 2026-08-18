@@ -1,0 +1,22 @@
+{
+  "apps": [
+    {
+      "name": "mesto-backend",
+      "script": "dist/app.js",
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  ],
+  "deploy": {
+    "production": {
+      "user": "process.env.DEPLOY_USER",
+      "host": "process.env.DEPLOY_HOST",
+      "ref": "process.env.DEPLOY_REF",
+      "repo": "git@github.com:JuliaShlykova/nodejs-mesto-project.git",
+      "path": "process.env.DEPLOY_PATH",
+      "pre-deploy-local": "scp .env process.env.DEPLOY_USER@process.env.DEPLOY_HOST:process.env.DEPLOY_PATH/current/.env",
+      "post-deploy": "npm install && npm run build && pm2 reload ecosystem.config.json --env production"
+    }
+  }
+}

@@ -18,10 +18,12 @@
     "lint": "npx eslint src/**/*.ts",
     "build": "tsc",
     "start": "ts-node --files src/app.ts",
-    "dev": "tsx watch src/app.ts"
+    "dev": "tsx watch src/app.ts",
+    "prod": "node dist/app.js"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
+    "@types/cors": "^2.8.19",
     "@types/dotenv": "^6.1.1",
     "@types/express": "^5.0.6",
     "@types/jsonwebtoken": "^9.0.10",
@@ -42,6 +44,7 @@
     "bcryptjs": "^3.0.3",
     "celebrate": "^15.0.3",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "express-rate-limit": "^8.5.2",
@@ -50,5 +53,8 @@
     "mongoose": "^9.7.1",
     "validator": "^13.15.35",
     "winston": "^3.19.0"
+  },
+    "overrides": {
+    "lodash": "^4.18.0"
   }
 }

@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express, { NextFunction, Request, Response } from 'express';
 import mongoose from 'mongoose';
 import cookieParser from 'cookie-parser';
+import cors from 'cors';
 
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
@@ -30,6 +31,13 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
+const { ALLOWED_ORIGINS = 'http://localhost:5000' } = process.env;
+const allowedOrigins = ALLOWED_ORIGINS.split(',');
+app.use(cors({
+  origin: allowedOrigins,
+  credentials: true,
+}));
+
 app.use(cookieParser());
 app.use(express.json());
 
@@ -52,6 +60,13 @@ app.use((req: Request, res: Response, next: NextFunction) => {
   });
 
   next();
+});
+
+// ⚠️ КРАШ-ТЕСТ (Удалить после ревью)
+app.get('/crash-test', () => {
+  setTimeout(() => {
+    throw new Error('Сервер сейчас упадёт');
+  }, 0);
 });
 
 app.post('/signin', validateLogin, login);
